@@ -6,7 +6,7 @@
     <inspection_tool class="PyPackageRequirementsInspection" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="ignoredPackages">
         <value>
-          <list size="13">
+          <list size="14">
             <item index="0" class="java.lang.String" itemvalue="email-validator" />
             <item index="1" class="java.lang.String" itemvalue="flexdown" />
             <item index="2" class="java.lang.String" itemvalue="black" />
@@ -20,6 +20,7 @@
             <item index="10" class="java.lang.String" itemvalue="openai" />
             <item index="11" class="java.lang.String" itemvalue="typesense" />
             <item index="12" class="java.lang.String" itemvalue="Pillow" />
+            <item index="13" class="java.lang.String" itemvalue="typing_extensions" />
           </list>
         </value>
       </option>

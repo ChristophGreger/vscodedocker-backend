@@ -1,2 +1,2 @@
-FLASK_APP=vscodedocker-backend.py
-SECRET_KEY=your_secret_key
+FLASK_APP="app"
+SECRET_KEY="your_secret_key"
