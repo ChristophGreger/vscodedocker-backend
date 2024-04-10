@@ -35,7 +35,9 @@ def create():
     db.session.add(vorlage)
     db.session.commit()
 
+    vorlagen_id = db.session.scalar(db.select(Vorlage.id).where(Vorlage.name == name))
+
     # Start thread to create the image
-    threading.Thread(target=mydocker.make_image, args=(name, 100, json.dumps(vscodeextension), json.dumps(installcommands))).start()
+    threading.Thread(target=mydocker.make_image, args=(vorlagen_id, name, 100, json.dumps(vscodeextension), json.dumps(installcommands))).start()
 
     return "Success", 200

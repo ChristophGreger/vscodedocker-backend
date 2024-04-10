@@ -1,11 +1,13 @@
 import docker
 from io import StringIO
 import json
+from app.database.models import Image
+from app import db
 
 client = docker.from_env()
 
 
-def make_image(name, version, vscodeextension, installcommands):
+def make_image(vorlagen_id, name, version, vscodeextension, installcommands):
 
     with open("/app/mydocker/_dockerfile", "r") as file:
         dockerfile = file.read()
@@ -32,9 +34,14 @@ def make_image(name, version, vscodeextension, installcommands):
 
     dockerstringio = StringIO(dockerfile)
 
-    client.images.build(fileobj=dockerstringio, tag=f"{name}:{version}")
+    image, logs = client.images.build(fileobj=dockerstringio, tag=f"{name}:{version}")
 
-    # TODO register the image in the database
+    from app import app
+
+    with app.app_context():
+        image = Image(name=f"{name}:{version}", version=version, id_vorlage=vorlagen_id)
+        db.session.add(image)
+        db.session.commit()
 
 
 
