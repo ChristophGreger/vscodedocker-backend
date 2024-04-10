@@ -9,7 +9,6 @@ RUN \
     exts=(\
         # From https://open-vsx.org/ registry directly
 {toreplaceforaddons}
-        scala-lang.scala \
     )\
     # Install the $exts
     && for ext in "${exts[@]}"; do ${OPENVSCODE} --install-extension "${ext}"; done

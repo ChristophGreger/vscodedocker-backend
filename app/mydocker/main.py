@@ -1,5 +1,5 @@
 import docker
-from io import StringIO
+from io import BytesIO
 import json
 from app.database.models import Image
 from app import db
@@ -8,8 +8,11 @@ client = docker.from_env()
 
 
 def make_image(vorlagen_id, name, version, vscodeextension, installcommands):
+    global logs
+    logs = []
+    name = name.lower()
 
-    with open("/app/mydocker/_dockerfile", "r") as file:
+    with open("./app/mydocker/_dockerfile", "r") as file:
         dockerfile = file.read()
 
     extensionsstring = vscodeextension
@@ -26,15 +29,25 @@ def make_image(vorlagen_id, name, version, vscodeextension, installcommands):
     commands = ""
 
     for command in commandsstring:
-        commands += "    " + command + "&& \\"
+        commands += "    " + command + " && "
 
     commands = commands[:-4]
 
     dockerfile = dockerfile.replace("{toreplaceforcommands}", commands)
 
-    dockerstringio = StringIO(dockerfile)
+    dockerstringio = BytesIO(bytes(dockerfile, "ascii"))
 
-    image, logs = client.images.build(fileobj=dockerstringio, tag=f"{name}:{version}")
+    print("Building image")
+
+    try:
+        image, logs = client.images.build(fileobj=dockerstringio, tag=f"{name}:{version}", forcerm=True, rm=True)
+    except Exception as e:
+        print(e)
+
+    print("Image built")
+
+    for x in logs:
+        print(x)
 
     from app import app
 
@@ -42,8 +55,3 @@ def make_image(vorlagen_id, name, version, vscodeextension, installcommands):
         image = Image(name=f"{name}:{version}", version=version, id_vorlage=vorlagen_id)
         db.session.add(image)
         db.session.commit()
-
-
-
-
-
