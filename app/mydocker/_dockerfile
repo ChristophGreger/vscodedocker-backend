@@ -1,0 +1,23 @@
+FROM gitpod/openvscode-server:latest
+
+ENV OPENVSCODE_SERVER_ROOT="/home/.openvscode-server"
+ENV OPENVSCODE="${OPENVSCODE_SERVER_ROOT}/bin/openvscode-server"
+
+SHELL ["/bin/bash", "-c"]
+RUN \
+    # List the extensions in this array
+    exts=(\
+        # From https://open-vsx.org/ registry directly
+{toreplaceforaddons}
+        scala-lang.scala \
+    )\
+    # Install the $exts
+    && for ext in "${exts[@]}"; do ${OPENVSCODE} --install-extension "${ext}"; done
+USER root
+RUN apt update && \
+    apt-get update && \
+    apt install -y git && \
+{toreplaceforcommands}
+
+USER openvscode-server
+ENTRYPOINT [ "/bin/sh", "-c", "exec ${OPENVSCODE_SERVER_ROOT}/bin/openvscode-server --host 0.0.0.0 \"${@}\"", "--" ]

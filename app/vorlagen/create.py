@@ -1,8 +1,10 @@
 from app.database.models import Vorlage
 from app.vorlagen import vorlagen
 from app import db
+import app.mydocker.main as mydocker
 from flask import request
 import json
+import threading
 
 
 @vorlagen.route('/create', methods=["PUT"])
@@ -33,7 +35,7 @@ def create():
     db.session.add(vorlage)
     db.session.commit()
 
-    # Here we have to create the image asynchronously. We should be able to create one by hand afterwards to, if the creation fails.
-    # Therefore i should implement a socketio connection with information on this stuff.
+    # Start thread to create the image
+    threading.Thread(target=mydocker.make_image, args=(name, 100, json.dumps(vscodeextension), json.dumps(installcommands))).start()
 
     return "Success", 200
