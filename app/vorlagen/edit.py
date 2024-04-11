@@ -1,6 +1,9 @@
-from app.database.models import Vorlage
+import threading
+
+from app.database.models import Vorlage, Container, Image
 from app.vorlagen import vorlagen
 from app import db
+import app.mydocker.main as mydocker
 import json
 from flask import request
 from sqlalchemy.sql import text
@@ -44,6 +47,11 @@ def edit_vorlage():
     db.session.add(vorlage)
     db.session.commit()
 
+    vorlage = db.session.execute(db.select(Vorlage).where(Vorlage.name == name, Vorlage.version == version)).scalar()
+
+    threading.Thread(target=mydocker.make_image,
+                     args=(vorlage.id, name, vorlage.version, json.dumps(vscodeextension), json.dumps(installcommands))).start()
+
     return "Success", 200
 
 
@@ -65,13 +73,32 @@ def delete_vorlage():
         if not vorlage:
             return "Vorlage does not exist", 404
     if vorlage:
+        _id = vorlage.id
+        if db.session.execute(db.select(Container).where(Container.id_vorlage == _id)).scalar():
+            return "Vorlage is in use", 405
         db.session.delete(vorlage)
+        image = db.session.execute(db.select(Image).where(Image.id_vorlage == _id)).scalar()
+        if image:
+            image.delete_file()
+        db.session.delete(image)
         db.session.commit()
         return "Success", 200
 
     if not name:
         return "Missing name", 402
+    alle_vorlagen = db.session.execute(db.select(Vorlage).where(Vorlage.name == name)).scalars().all()
+    if not alle_vorlagen:
+        return "Vorlage does not exist", 404
 
-    db.session.delete(db.session.execute(db.select(Vorlage).where(Vorlage.name == name)).scalars())
+    for x in alle_vorlagen:
+        if db.session.execute(db.select(Container).where(Container.id_vorlage == x.id)).scalar():
+            return "Vorlage is still in use", 405
+    for x in alle_vorlagen:
+        image = db.session.execute(db.select(Image).where(Image.id_vorlage == x.id)).scalar()
+        if image:
+            image.delete_file()
+        db.session.delete(image)
+    db.session.delete(alle_vorlagen)
+    db.session.delete(db.session.execute(db.select(Image).where(Image.id_vorlage == _id)).scalars())
     db.session.commit()
     return "Success", 200

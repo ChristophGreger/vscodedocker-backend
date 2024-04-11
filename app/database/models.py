@@ -1,6 +1,9 @@
 from app import db
 import sqlalchemy as sa
 import sqlalchemy.orm as so
+import docker
+
+client = docker.from_env()
 
 
 class Volume(db.Model):
@@ -40,6 +43,10 @@ class Image(db.Model):
 
     def __repr__(self):
         return f'<Image {self.name}>'
+
+    def delete_file(self):
+        client.images.remove(self.docker_id)
+
 
 
 class Container(db.Model):
