@@ -7,6 +7,7 @@ import app.mydocker.main as mydocker
 import json
 from flask import request
 from sqlalchemy.sql import text
+import app.jsonvalidation.vorlagen as jv
 
 
 @vorlagen.route("/edit", methods=["PATCH"])
@@ -14,24 +15,15 @@ def edit_vorlage():
     data = request.json
 
     try:
-        name = data["name"]
-        description = data["description"]
-        vscodeextension = data["vscodeextension"]
-        installcommands = data["installcommands"]
-        version = data["version"]
-
-        if not isinstance(version, int):
-            raise Exception("version must be an int")
-
-        if not name or not description or not vscodeextension or not installcommands:
-            raise Exception("Missing required fields")
-
-        if not isinstance(vscodeextension, list):
-            raise Exception("vscodeextension must be a list")
-        if not isinstance(installcommands, list):
-            raise Exception("installcommands must be a list")
+        jv.validate_edit(data)
     except Exception as e:
-        return "False request body because of " + str(e), 402
+        return "False request body because of: " + str(e), 402
+
+    name = data["name"]
+    description = data["description"]
+    vscodeextension = data["vscodeextension"]
+    installcommands = data["installcommands"]
+    version = data["version"]
 
     if not db.session.execute(db.select(db.exists().where(Vorlage.name == name))).scalar():
         return "Vorlage does not exist", 403
@@ -62,43 +54,15 @@ def delete_vorlage():
     version = request.args.get("version")
     _id = request.args.get("id")
 
-    vorlage = None
+    if not _id and not version and name:
+        for x in db.session.execute(db.select(Vorlage).where(Vorlage.name == name)).scalars().all():
+            x.delete()
 
-    if _id:
-        vorlage = db.session.execute(db.select(Vorlage).where(Vorlage.id == _id)).scalar()
-        if not vorlage:
-            return "Vorlage does not exist", 404
-    elif name and version:
-        vorlage = db.session.execute(db.select(Vorlage).where(Vorlage.name == name, Vorlage.version == version)).scalar()
-        if not vorlage:
-            return "Vorlage does not exist", 404
-    if vorlage:
-        _id = vorlage.id
-        if db.session.execute(db.select(Container).where(Container.id_vorlage == _id)).scalar():
-            return "Vorlage is in use", 405
-        db.session.delete(vorlage)
-        image = db.session.execute(db.select(Image).where(Image.id_vorlage == _id)).scalar()
-        if image:
-            image.delete_file()
-        db.session.delete(image)
-        db.session.commit()
-        return "Success", 200
+    vorlage = Vorlage.get(name, _id, version)
 
-    if not name:
-        return "Missing name", 402
-    alle_vorlagen = db.session.execute(db.select(Vorlage).where(Vorlage.name == name)).scalars().all()
-    if not alle_vorlagen:
+    if not vorlage:
         return "Vorlage does not exist", 404
 
-    for x in alle_vorlagen:
-        if db.session.execute(db.select(Container).where(Container.id_vorlage == x.id)).scalar():
-            return "Vorlage is still in use", 405
-    for x in alle_vorlagen:
-        image = db.session.execute(db.select(Image).where(Image.id_vorlage == x.id)).scalar()
-        if image:
-            image.delete_file()
-        db.session.delete(image)
-    db.session.delete(alle_vorlagen)
-    db.session.delete(db.session.execute(db.select(Image).where(Image.id_vorlage == _id)).scalars())
-    db.session.commit()
+    vorlage.delete()
+
     return "Success", 200

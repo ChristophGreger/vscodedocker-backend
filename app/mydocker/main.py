@@ -3,6 +3,7 @@ from io import BytesIO
 import json
 from app.database.models import Image
 from app import db
+import threading
 
 client = docker.from_env()
 
@@ -58,3 +59,8 @@ def make_image(vorlagen_id, name, version, vscodeextension, installcommands):
         image = Image(name=f"{name}:{version}", version=version, id_vorlage=vorlagen_id, docker_id=docker_id)
         db.session.add(image)
         db.session.commit()
+
+
+def make_image_thread(*args):
+    threading.Thread(target=make_image,
+                     args=args).start()
