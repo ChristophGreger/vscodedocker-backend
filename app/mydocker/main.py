@@ -64,3 +64,6 @@ def make_image(vorlagen_id, name, version, vscodeextension, installcommands):
 def make_image_thread(*args):
     threading.Thread(target=make_image,
                      args=args).start()
+
+
+

@@ -4,6 +4,7 @@ from sqlalchemy.sql import text
 import sqlalchemy.orm as so
 import docker
 import json
+
 client = docker.from_env()
 
 
@@ -27,7 +28,8 @@ class Vorlage(db.Model):
     def toJson(self):
         usedin = [container.id for container in self.get_containers()]
         image_id = self.get_image().id if self.get_image() else None
-        existingversions = [vorlage.version for vorlage in db.session.execute(db.select(Vorlage).where(Vorlage.name == self.name)).scalars().all()]
+        existingversions = [vorlage.version for vorlage in
+                            db.session.execute(db.select(Vorlage).where(Vorlage.name == self.name)).scalars().all()]
 
         return {
             "id": self.id,
@@ -41,7 +43,6 @@ class Vorlage(db.Model):
             "existingversions": existingversions
         }
 
-
     @staticmethod
     def get(name, _id, version):
         if not name and not _id and not version:
@@ -49,8 +50,10 @@ class Vorlage(db.Model):
         if _id:
             return db.session.execute(db.select(Vorlage).where(Vorlage.id == _id)).scalars().first()
         if not version:
-            return db.session.execute(db.select(Vorlage).where(Vorlage.name == name).order_by(text("version desc"))).scalars().first()
-        return db.session.execute(db.select(Vorlage).where(Vorlage.name == name, Vorlage.version == version)).scalars().first()
+            return db.session.execute(
+                db.select(Vorlage).where(Vorlage.name == name).order_by(text("version desc"))).scalars().first()
+        return db.session.execute(
+            db.select(Vorlage).where(Vorlage.name == name, Vorlage.version == version)).scalars().first()
 
     def __repr__(self):
         return f'<Vorlage {self.name}>'

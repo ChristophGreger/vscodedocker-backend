@@ -15,5 +15,8 @@ from app.database import models
 from app.auth import auth
 app.register_blueprint(auth)
 
+from app.container import container
+app.register_blueprint(container)
+
 from app.vorlagen import vorlagen
 app.register_blueprint(vorlagen)
