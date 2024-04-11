@@ -1,8 +1,6 @@
-from app import db
-from app.database.models import Vorlage, Image, Container
+from app.database.models import Vorlage
 from app.vorlagen import vorlagen
 from flask import request
-from sqlalchemy.sql import text
 import json
 
 

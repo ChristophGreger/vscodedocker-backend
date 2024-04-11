@@ -15,6 +15,15 @@ class Volume(db.Model):
     def __repr__(self):
         return f'<Volume {self.name}>'
 
+    @staticmethod
+    def getAll(self):
+        return db.session.execute(db.select(Volume)).scalars().all()
+
+
+    def get_usedin(self):
+        return [container for container in
+                db.session.execute(db.select(Container).where(Container.id_volume == self.id)).scalars().all()]
+
 
 class Vorlage(db.Model):
     id: so.Mapped[int] = so.mapped_column(primary_key=True)

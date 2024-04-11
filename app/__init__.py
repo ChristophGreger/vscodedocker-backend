@@ -20,3 +20,6 @@ app.register_blueprint(container)
 
 from app.vorlagen import vorlagen
 app.register_blueprint(vorlagen)
+
+from app.volumes import volumes
+app.register_blueprint(volumes)

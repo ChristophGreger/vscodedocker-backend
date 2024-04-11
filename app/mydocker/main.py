@@ -66,4 +66,22 @@ def make_image_thread(*args):
                      args=args).start()
 
 
+def create_volume(name):
+    if not name:
+        return False
+    if client.volumes.list(filters={"name": name}):
+        return False
+    client.volumes.create(name=name)
+    return True
+
+
+def delete_volume(name):
+    if not name:
+        return False
+    if not client.volumes.list(filters={"name": name}):
+        return False
+    client.volumes.get(name).remove()
+    return True
+
+
 
