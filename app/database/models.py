@@ -19,7 +19,6 @@ class Volume(db.Model):
     def getAll(self):
         return db.session.execute(db.select(Volume)).scalars().all()
 
-
     def get_usedin(self):
         return [container for container in
                 db.session.execute(db.select(Container).where(Container.id_volume == self.id)).scalars().all()]
@@ -87,7 +86,6 @@ class Vorlage(db.Model):
 class Image(db.Model):
     id: so.Mapped[int] = so.mapped_column(primary_key=True)
     name: so.Mapped[str] = so.mapped_column(sa.String(255), nullable=False, index=True, unique=True)
-    version: so.Mapped[int] = so.mapped_column(sa.Integer, nullable=False, index=True)
     id_vorlage: so.Mapped[int] = so.mapped_column(sa.ForeignKey(Vorlage.id), nullable=False, index=True)
     docker_id: so.Mapped[str] = so.mapped_column(sa.String(255), nullable=False, index=True, unique=True)
 

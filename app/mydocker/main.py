@@ -1,7 +1,7 @@
 import docker
 from io import BytesIO
 import json
-from app.database.models import Image
+from app.database.models import Image, Volume
 from app import db
 import threading
 
@@ -72,6 +72,9 @@ def create_volume(name):
     if client.volumes.list(filters={"name": name}):
         return False
     client.volumes.create(name=name)
+    volume = Volume(name=name)
+    db.session.add(volume)
+    db.session.commit()
     return True
 
 
@@ -81,6 +84,9 @@ def delete_volume(name):
     if not client.volumes.list(filters={"name": name}):
         return False
     client.volumes.get(name).remove()
+    volume = db.session.execute(db.select(Volume).where(Volume.name == name)).scalars().first()
+    db.session.delete(volume)
+    db.session.commit()
     return True
 
 
