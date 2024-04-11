@@ -39,19 +39,22 @@ def make_image(vorlagen_id, name, version, vscodeextension, installcommands):
 
     print("Building image")
 
+    docker_id = None
+
     try:
-        image, logs = client.images.build(fileobj=dockerstringio, tag=f"{name}:{version}", forcerm=True, rm=True)
+        image, logs = client.images.build(fileobj=dockerstringio, forcerm=True, rm=True)
+        docker_id = image.id
     except Exception as e:
         print(e)
 
     print("Image built")
 
-    for x in logs:
-        print(x)
+    # for x in logs:
+    #     print(x)
 
     from app import app
 
     with app.app_context():
-        image = Image(name=f"{name}:{version}", version=version, id_vorlage=vorlagen_id)
+        image = Image(name=f"{name}:{version}", version=version, id_vorlage=vorlagen_id, docker_id=docker_id)
         db.session.add(image)
         db.session.commit()

@@ -32,6 +32,7 @@ class Image(db.Model):
     name: so.Mapped[str] = so.mapped_column(sa.String(255), nullable=False, unique=True, index=True)
     version: so.Mapped[int] = so.mapped_column(sa.Integer, nullable=False, index=True)
     id_vorlage: so.Mapped[int] = so.mapped_column(sa.ForeignKey(Vorlage.id), nullable=False, index=True)
+    docker_id: so.Mapped[str] = so.mapped_column(sa.String(255), nullable=False, index=True)
 
     containers: so.WriteOnlyMapped["Container"] = so.relationship(back_populates="image")
     vorlage: so.Mapped[Vorlage] = so.relationship(back_populates="images")
