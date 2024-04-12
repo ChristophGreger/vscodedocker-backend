@@ -86,7 +86,7 @@ class Vorlage(db.Model):
 class Image(db.Model):
     id: so.Mapped[int] = so.mapped_column(primary_key=True)
     name: so.Mapped[str] = so.mapped_column(sa.String(255), nullable=False, index=True, unique=True)
-    id_vorlage: so.Mapped[int] = so.mapped_column(sa.ForeignKey(Vorlage.id), nullable=False, index=True)
+    id_vorlage: so.Mapped[int] = so.mapped_column(sa.ForeignKey(Vorlage.id), nullable=False, index=True, unique=True)
     docker_id: so.Mapped[str] = so.mapped_column(sa.String(255), nullable=False, index=True, unique=True)
 
     def __repr__(self):
@@ -98,7 +98,19 @@ class Image(db.Model):
         db.session.delete(self)
         client.images.remove(self.docker_id)
         db.session.commit()
-        return True
+        return True, ""
+
+    @staticmethod
+    def get_All():
+        return db.session.execute(db.select(Image)).scalars().all()
+
+    @staticmethod
+    def by_id(_id):
+        return db.session.execute(db.select(Image).where(Image.id == _id)).scalars().first()
+
+    @staticmethod
+    def by_name(name):
+        return db.session.execute(db.select(Image).where(Image.name == name)).scalars().first()
 
     def isused(self):
         return bool(db.session.execute(db.select(Container).where(Container.id_image == self.id)).scalars().first())
@@ -108,6 +120,15 @@ class Image(db.Model):
 
     def get_vorlage(self):
         return db.session.execute(db.select(Vorlage).where(Vorlage.id == self.id_vorlage)).scalars().first()
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "id_vorlage": self.id_vorlage,
+            "docker_id": self.docker_id,
+            "usedin": [container.id for container in self.get_containers()]
+        }
 
 
 class Container(db.Model):
