@@ -140,3 +140,22 @@ class Container(db.Model):
 
     def __repr__(self):
         return f'<Container {self.name}>'
+
+    def to_dict(self):
+        container = client.containers.get(self.name)
+        return {
+            "id": self.id,
+            "name": self.name,
+            "port": self.port,
+            "id_volume": self.id_volume,
+            "id_image": self.id_image,
+            "status": container.status
+        }
+
+    def delete(self):
+        db.session.delete(self)
+        db.session.commit()
+
+    @staticmethod
+    def get_All():
+        return db.session.execute(db.select(Container)).scalars().all()
